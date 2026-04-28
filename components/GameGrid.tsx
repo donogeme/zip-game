@@ -217,29 +217,39 @@ export function GameGrid({ grid, path, onPathChange, onPathRetrace, isComplete, 
               </motion.div>
             ))}
             
-            {/* Success message */}
+            {/* Success message - reorganized so emoji doesn't cover text */}
             <motion.div
-              className="text-7xl mb-4 z-10"
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ 
-                scale: [0, 1.3, 1],
-                rotate: [- 180, 180, 360] 
-              }}
+              className="flex flex-col items-center gap-2 z-10"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
               transition={{ 
                 type: 'spring',
-                duration: 0.8,
-                bounce: 0.6
+                duration: 0.6,
+                delay: 0.2
               }}
             >
-              🎊
-            </motion.div>
-            <motion.div
-              className="text-3xl font-bold text-white z-10"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-            >
-              Perfect!
+              <motion.div
+                className="text-6xl"
+                animate={{ 
+                  rotate: [0, 10, -10, 10, 0]
+                }}
+                transition={{
+                  duration: 0.5,
+                  delay: 0.5,
+                  repeat: Infinity,
+                  repeatDelay: 2
+                }}
+              >
+                🎊
+              </motion.div>
+              <motion.div
+                className="text-4xl font-bold text-white"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                Perfect!
+              </motion.div>
             </motion.div>
           </motion.div>
         )}
@@ -264,15 +274,19 @@ function GridCell({ cell, onMouseDown, onMouseEnter }: GridCellProps) {
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
     >
-      {/* Numbered dot - prominent black circle */}
+      {/* Numbered dot - prominent black circle with white text */}
+      {/* Must be on top of path - render with high z-index */}
       {cell.isDot && (
         <motion.div 
-          className="w-[70%] h-[70%] rounded-full bg-black flex items-center justify-center shadow-lg z-10"
+          className="absolute w-[70%] h-[70%] rounded-full bg-black flex items-center justify-center z-20"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          style={{
+            boxShadow: '0 2px 8px rgba(0,0,0,0.3), 0 0 0 2px white'
+          }}
         >
-          <span className="text-white font-bold" style={{ fontSize: '0.9rem' }}>
+          <span className="text-white font-extrabold" style={{ fontSize: '1rem' }}>
             {cell.dotNumber}
           </span>
         </motion.div>
