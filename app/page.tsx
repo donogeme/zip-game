@@ -13,7 +13,7 @@ export default function Home() {
     difficulty: 'medium'
   });
 
-  const { gameState, addToPath, resetGame, useHint, timer } = useGameState(config);
+  const { gameState, addToPath, resetGame, newGame, undoMove, useHint, timer } = useGameState(config);
 
   const handleConfigChange = (newConfig: PuzzleConfig) => {
     setConfig(newConfig);
@@ -70,6 +70,8 @@ export default function Home() {
           hintsUsed={gameState.hintsUsed}
           isComplete={gameState.isComplete}
           onReset={resetGame}
+          onNewGame={newGame}
+          onUndo={undoMove}
           onHint={handleHint}
           onConfigChange={handleConfigChange}
         />

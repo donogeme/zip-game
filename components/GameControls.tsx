@@ -10,6 +10,8 @@ interface GameControlsProps {
   hintsUsed: number;
   isComplete: boolean;
   onReset: () => void;
+  onNewGame: () => void;
+  onUndo: () => void;
   onHint: () => void;
   onConfigChange: (config: PuzzleConfig) => void;
 }
@@ -20,6 +22,8 @@ export function GameControls({
   hintsUsed,
   isComplete,
   onReset,
+  onNewGame,
+  onUndo,
   onHint,
   onConfigChange
 }: GameControlsProps) {
@@ -62,10 +66,19 @@ export function GameControls({
       </div>
 
       {/* Action buttons */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-4 gap-2">
+        <motion.button
+          onClick={onUndo}
+          className="bg-white hover:bg-gray-50 text-gray-700 py-3 px-2 rounded-xl font-semibold shadow-md border-2 border-gray-200 text-sm"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          ↶ Undo
+        </motion.button>
+        
         <motion.button
           onClick={onReset}
-          className="bg-white hover:bg-gray-50 text-gray-700 py-3 px-4 rounded-xl font-semibold shadow-md border-2 border-gray-200"
+          className="bg-white hover:bg-gray-50 text-gray-700 py-3 px-2 rounded-xl font-semibold shadow-md border-2 border-gray-200 text-sm"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
@@ -75,7 +88,7 @@ export function GameControls({
         <motion.button
           onClick={onHint}
           disabled={isComplete}
-          className="bg-[#FF6B1A] hover:bg-[#FF5500] disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-4 rounded-xl font-semibold shadow-md"
+          className="bg-[#FF6B1A] hover:bg-[#FF5500] disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-2 rounded-xl font-semibold shadow-md text-sm"
           whileHover={!isComplete ? { scale: 1.02 } : {}}
           whileTap={!isComplete ? { scale: 0.98 } : {}}
         >
@@ -84,11 +97,11 @@ export function GameControls({
 
         <motion.button
           onClick={() => setShowSettings(!showSettings)}
-          className="bg-white hover:bg-gray-50 text-gray-700 py-3 px-4 rounded-xl font-semibold shadow-md border-2 border-gray-200"
+          className="bg-white hover:bg-gray-50 text-gray-700 py-3 px-2 rounded-xl font-semibold shadow-md border-2 border-gray-200 text-sm"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          ⚙️ Settings
+          ⚙️
         </motion.button>
       </div>
 
@@ -159,15 +172,28 @@ export function GameControls({
             </div>
           </div>
 
-          {/* Apply button */}
-          <motion.button
-            onClick={applySettings}
-            className="w-full bg-[#FF6B1A] hover:bg-[#FF5500] text-white py-3 px-4 rounded-xl font-semibold shadow-md"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            Apply & New Game
-          </motion.button>
+          {/* Apply buttons */}
+          <div className="grid grid-cols-2 gap-3">
+            <motion.button
+              onClick={() => {
+                setNewConfig(config);
+                setShowSettings(false);
+              }}
+              className="bg-gray-200 hover:bg-gray-300 text-gray-700 py-3 px-4 rounded-xl font-semibold shadow-md"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Cancel
+            </motion.button>
+            <motion.button
+              onClick={applySettings}
+              className="bg-[#FF6B1A] hover:bg-[#FF5500] text-white py-3 px-4 rounded-xl font-semibold shadow-md"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              New Game
+            </motion.button>
+          </div>
         </motion.div>
       )}
 

@@ -94,10 +94,57 @@ export function useGameState(config: PuzzleConfig) {
     });
   }, [gameState]);
 
-  // Reset game
+  // Reset game (clear path, keep same puzzle)
   const resetGame = useCallback(() => {
+    if (!gameState) return;
+    
+    setGameState(prev => {
+      if (!prev) return prev;
+      
+      return {
+        ...prev,
+        path: [],
+        grid: prev.grid.map(row =>
+          row.map(cell => ({
+            ...cell,
+            visited: false
+          }))
+        ),
+        isComplete: false
+      };
+    });
+    setTimer(0);
+    setIsRunning(false);
+  }, [gameState]);
+  
+  // New game (generate new puzzle)
+  const newGame = useCallback(() => {
     initGame();
   }, [initGame]);
+  
+  // Undo last move
+  const undoMove = useCallback(() => {
+    if (!gameState || gameState.path.length === 0) return;
+    
+    setGameState(prev => {
+      if (!prev || prev.path.length === 0) return prev;
+      
+      const newPath = prev.path.slice(0, -1);
+      const newGrid = prev.grid.map(row =>
+        row.map(cell => ({
+          ...cell,
+          visited: newPath.some(p => p.row === cell.position.row && p.col === cell.position.col)
+        }))
+      );
+      
+      return {
+        ...prev,
+        path: newPath,
+        grid: newGrid,
+        isComplete: false
+      };
+    });
+  }, [gameState]);
 
   // Use hint (show next valid move)
   const useHint = useCallback(() => {
@@ -125,6 +172,8 @@ export function useGameState(config: PuzzleConfig) {
     addToPath,
     removeFromPath,
     resetGame,
+    newGame,
+    undoMove,
     useHint,
     timer
   };
