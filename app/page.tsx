@@ -31,21 +31,24 @@ export default function Home() {
 
   if (!gameState) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-2xl">Loading...</div>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center">
+        <div className="text-gray-800 text-2xl">Loading...</div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4 md:p-8">
+    <main className="min-h-screen bg-gradient-to-br from-orange-50 via-yellow-50 to-orange-100 p-4 md:p-8">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-2">
-            Zip 🎯
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-800 mb-2">
+            <span className="inline-flex items-center gap-2">
+              <span className="bg-[#0A66C2] text-white px-3 py-1 rounded text-3xl">in</span>
+              Zip
+            </span>
           </h1>
-          <p className="text-gray-300 text-lg">
+          <p className="text-gray-600 text-lg mt-3">
             Connect all dots in order while filling the entire grid!
           </p>
         </div>
@@ -72,14 +75,12 @@ export default function Home() {
         />
 
         {/* Instructions */}
-        <div className="bg-gray-800 p-4 rounded-lg text-sm text-gray-400">
-          <h3 className="font-bold text-white mb-2">How to Play:</h3>
-          <ol className="list-decimal list-inside space-y-1">
-            <li>Start at dot #1</li>
-            <li>Draw a continuous path through all dots in order</li>
-            <li>The path must visit every cell on the grid exactly once</li>
-            <li>You can only move up, down, left, or right (no diagonals)</li>
-            <li>Complete the puzzle to win!</li>
+        <div className="bg-white/80 backdrop-blur p-5 rounded-2xl shadow-md text-sm text-gray-700">
+          <h3 className="font-bold text-gray-800 mb-3 text-base">How to Play:</h3>
+          <ol className="list-decimal list-inside space-y-2">
+            <li>Create a single path that visits every cell in the grid</li>
+            <li>The numbered cells must be visited in order</li>
+            <li>Use the hint button if you are stuck</li>
           </ol>
         </div>
 

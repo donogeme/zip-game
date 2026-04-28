@@ -40,34 +40,34 @@ export function GameControls({
   return (
     <div className="space-y-4">
       {/* Stats */}
-      <div className="flex justify-between items-center bg-gray-800 p-4 rounded-lg">
+      <div className="grid grid-cols-4 gap-3 bg-white/80 backdrop-blur p-4 rounded-2xl shadow-md">
         <div className="text-center">
-          <div className="text-2xl font-bold text-blue-400">{formatTime(timer)}</div>
-          <div className="text-xs text-gray-400">Time</div>
+          <div className="text-2xl font-bold text-gray-800">{formatTime(timer)}</div>
+          <div className="text-xs text-gray-500 font-medium">Time</div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-yellow-400">{hintsUsed}</div>
-          <div className="text-xs text-gray-400">Hints</div>
+          <div className="text-2xl font-bold text-[#FF6B1A]">{hintsUsed}</div>
+          <div className="text-xs text-gray-500 font-medium">Hints</div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-green-400">
+          <div className="text-2xl font-bold text-gray-800">
             {config.gridSize}×{config.gridSize}
           </div>
-          <div className="text-xs text-gray-400">Grid</div>
+          <div className="text-xs text-gray-500 font-medium">Grid</div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-purple-400">{config.dotCount}</div>
-          <div className="text-xs text-gray-400">Dots</div>
+          <div className="text-2xl font-bold text-gray-800">{config.dotCount}</div>
+          <div className="text-xs text-gray-500 font-medium">Dots</div>
         </div>
       </div>
 
       {/* Action buttons */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-3">
         <motion.button
           onClick={onReset}
-          className="bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg font-semibold"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          className="bg-white hover:bg-gray-50 text-gray-700 py-3 px-4 rounded-xl font-semibold shadow-md border-2 border-gray-200"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
           🔄 Reset
         </motion.button>
@@ -75,18 +75,18 @@ export function GameControls({
         <motion.button
           onClick={onHint}
           disabled={isComplete}
-          className="bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 px-4 rounded-lg font-semibold"
-          whileHover={!isComplete ? { scale: 1.05 } : {}}
-          whileTap={!isComplete ? { scale: 0.95 } : {}}
+          className="bg-[#FF6B1A] hover:bg-[#FF5500] disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-4 rounded-xl font-semibold shadow-md"
+          whileHover={!isComplete ? { scale: 1.02 } : {}}
+          whileTap={!isComplete ? { scale: 0.98 } : {}}
         >
           💡 Hint
         </motion.button>
 
         <motion.button
           onClick={() => setShowSettings(!showSettings)}
-          className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-semibold"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+          className="bg-white hover:bg-gray-50 text-gray-700 py-3 px-4 rounded-xl font-semibold shadow-md border-2 border-gray-200"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
           ⚙️ Settings
         </motion.button>
@@ -97,13 +97,13 @@ export function GameControls({
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gray-800 p-4 rounded-lg space-y-4"
+          className="bg-white/90 backdrop-blur p-5 rounded-2xl shadow-lg space-y-5"
         >
-          <h3 className="text-xl font-bold text-white">Game Settings</h3>
+          <h3 className="text-xl font-bold text-gray-800">Game Settings</h3>
 
           {/* Grid size */}
           <div>
-            <label className="block text-sm text-gray-400 mb-2">
+            <label className="block text-sm text-gray-600 mb-2 font-medium">
               Grid Size: {newConfig.gridSize}×{newConfig.gridSize}
             </label>
             <input
@@ -112,9 +112,9 @@ export function GameControls({
               max="8"
               value={newConfig.gridSize}
               onChange={(e) => setNewConfig({ ...newConfig, gridSize: parseInt(e.target.value) })}
-              className="w-full"
+              className="w-full accent-[#FF6B1A]"
             />
-            <div className="flex justify-between text-xs text-gray-500">
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
               <span>3×3</span>
               <span>8×8</span>
             </div>
@@ -122,7 +122,7 @@ export function GameControls({
 
           {/* Dot count */}
           <div>
-            <label className="block text-sm text-gray-400 mb-2">
+            <label className="block text-sm text-gray-600 mb-2 font-medium">
               Number of Dots: {newConfig.dotCount}
             </label>
             <input
@@ -131,9 +131,9 @@ export function GameControls({
               max={Math.min(newConfig.gridSize * 2, 16)}
               value={newConfig.dotCount}
               onChange={(e) => setNewConfig({ ...newConfig, dotCount: parseInt(e.target.value) })}
-              className="w-full"
+              className="w-full accent-[#FF6B1A]"
             />
-            <div className="flex justify-between text-xs text-gray-500">
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
               <span>2</span>
               <span>{Math.min(newConfig.gridSize * 2, 16)}</span>
             </div>
@@ -141,16 +141,16 @@ export function GameControls({
 
           {/* Difficulty */}
           <div>
-            <label className="block text-sm text-gray-400 mb-2">Difficulty</label>
+            <label className="block text-sm text-gray-600 mb-2 font-medium">Difficulty</label>
             <div className="grid grid-cols-3 gap-2">
               {(['easy', 'medium', 'hard'] as const).map((diff) => (
                 <button
                   key={diff}
                   onClick={() => setNewConfig({ ...newConfig, difficulty: diff })}
-                  className={`py-2 px-4 rounded font-semibold capitalize ${
+                  className={`py-2 px-4 rounded-lg font-semibold capitalize transition-colors ${
                     newConfig.difficulty === diff
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                      ? 'bg-[#FF6B1A] text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
                 >
                   {diff}
@@ -162,7 +162,7 @@ export function GameControls({
           {/* Apply button */}
           <motion.button
             onClick={applySettings}
-            className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg font-semibold"
+            className="w-full bg-[#FF6B1A] hover:bg-[#FF5500] text-white py-3 px-4 rounded-xl font-semibold shadow-md"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -176,11 +176,12 @@ export function GameControls({
         <motion.div
           initial={{ opacity: 0, scale: 0.8, y: -20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-xl text-center shadow-2xl"
+          className="bg-white p-6 rounded-2xl text-center shadow-xl border-4 border-[#FF6B1A]"
         >
-          <div className="text-3xl font-bold text-white mb-3">🎉 Puzzle Complete!</div>
-          <div className="text-white text-lg">
-            Time: <span className="font-bold">{formatTime(timer)}</span> | Hints: <span className="font-bold">{hintsUsed}</span>
+          <div className="text-3xl font-bold text-gray-800 mb-3">🎉 Puzzle Complete!</div>
+          <div className="text-gray-600 text-lg">
+            Time: <span className="font-bold text-[#FF6B1A]">{formatTime(timer)}</span> | 
+            Hints: <span className="font-bold text-[#FF6B1A]">{hintsUsed}</span>
           </div>
         </motion.div>
       )}
