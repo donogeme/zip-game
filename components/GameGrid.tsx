@@ -9,9 +9,10 @@ interface GameGridProps {
   path: Position[];
   onPathChange: (pos: Position) => void;
   isComplete: boolean;
+  pathColor: { name: string; base: string; light: string; dark: string };
 }
 
-export function GameGrid({ grid, path, onPathChange, isComplete }: GameGridProps) {
+export function GameGrid({ grid, path, onPathChange, isComplete, pathColor }: GameGridProps) {
   const [isDragging, setIsDragging] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
   const gridSize = grid.length;
@@ -145,7 +146,7 @@ export function GameGrid({ grid, path, onPathChange, isComplete }: GameGridProps
           ))
         )}
 
-        {/* SVG path overlay - the orange ribbon */}
+        {/* SVG path overlay - the colored ribbon with gradient */}
         {path.length > 0 && gridRef.current && (
           <svg
             className="absolute top-0 left-0 pointer-events-none"
@@ -156,7 +157,14 @@ export function GameGrid({ grid, path, onPathChange, isComplete }: GameGridProps
             viewBox={`0 0 ${gridSize} ${gridSize}`}
             preserveAspectRatio="none"
           >
-            <PathRibbon path={path} gridSize={gridSize} />
+            <defs>
+              <linearGradient id={`pathGradient-${pathColor.name}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor={pathColor.light} />
+                <stop offset="50%" stopColor={pathColor.base} />
+                <stop offset="100%" stopColor={pathColor.dark} />
+              </linearGradient>
+            </defs>
+            <PathRibbon path={path} gridSize={gridSize} pathColor={pathColor} />
           </svg>
         )}
       </div>
@@ -165,33 +173,62 @@ export function GameGrid({ grid, path, onPathChange, isComplete }: GameGridProps
       <AnimatePresence>
         {isComplete && (
           <motion.div
-            className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 rounded-2xl backdrop-blur-sm"
+            className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 rounded-2xl backdrop-blur-sm z-20"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
+            {/* Confetti particles */}
+            {[...Array(20)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute text-3xl"
+                initial={{
+                  x: 0,
+                  y: 0,
+                  opacity: 1,
+                  scale: 0
+                }}
+                animate={{
+                  x: (Math.random() - 0.5) * 400,
+                  y: (Math.random() - 0.5) * 400,
+                  opacity: 0,
+                  scale: 1,
+                  rotate: Math.random() * 720
+                }}
+                transition={{
+                  duration: 1.5,
+                  delay: i * 0.03,
+                  ease: "easeOut"
+                }}
+              >
+                {['🎉', '✨', '⭐', '🌟', '💫'][Math.floor(Math.random() * 5)]}
+              </motion.div>
+            ))}
+            
+            {/* Success message */}
             <motion.div
-              className="text-8xl mb-4"
+              className="text-7xl mb-4 z-10"
               initial={{ scale: 0, rotate: -180 }}
               animate={{ 
-                scale: [0, 1.2, 1],
-                rotate: [-180, 180, 360] 
+                scale: [0, 1.3, 1],
+                rotate: [- 180, 180, 360] 
               }}
               transition={{ 
                 type: 'spring',
-                duration: 1,
-                bounce: 0.5
+                duration: 0.8,
+                bounce: 0.6
               }}
             >
-              🎉
+              🎊
             </motion.div>
             <motion.div
-              className="text-3xl font-bold text-white"
+              className="text-3xl font-bold text-white z-10"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.4 }}
             >
-              Puzzle Complete!
+              Perfect!
             </motion.div>
           </motion.div>
         )}
@@ -216,13 +253,18 @@ function GridCell({ cell, onMouseDown, onMouseEnter }: GridCellProps) {
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
     >
-      {/* Numbered dot */}
+      {/* Numbered dot - prominent black circle */}
       {cell.isDot && (
-        <div className="w-3/5 h-3/5 rounded-full bg-black flex items-center justify-center z-10 shadow-lg">
-          <span className="text-white font-bold text-sm md:text-base">
+        <motion.div 
+          className="w-[70%] h-[70%] rounded-full bg-black flex items-center justify-center shadow-lg z-10"
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+        >
+          <span className="text-white font-bold" style={{ fontSize: '0.9rem' }}>
             {cell.dotNumber}
           </span>
-        </div>
+        </motion.div>
       )}
     </div>
   );
@@ -232,9 +274,10 @@ function GridCell({ cell, onMouseDown, onMouseEnter }: GridCellProps) {
 interface PathRibbonProps {
   path: Position[];
   gridSize: number;
+  pathColor: { name: string; base: string; light: string; dark: string };
 }
 
-function PathRibbon({ path, gridSize }: PathRibbonProps) {
+function PathRibbon({ path, gridSize, pathColor }: PathRibbonProps) {
   if (path.length === 0) return null;
 
   const ribbonWidth = 0.65; // 65% of cell width
@@ -245,72 +288,7 @@ function PathRibbon({ path, gridSize }: PathRibbonProps) {
     y: pos.row + 0.5
   });
 
-  // Build SVG path for the ribbon
-  const buildPathString = () => {
-    if (path.length === 1) {
-      // Single cell - just a circle
-      const center = getCenter(path[0]);
-      const r = ribbonWidth / 2;
-      return `M ${center.x - r} ${center.y} 
-              A ${r} ${r} 0 1 1 ${center.x + r} ${center.y}
-              A ${r} ${r} 0 1 1 ${center.x - r} ${center.y}`;
-    }
-
-    const points = path.map(getCenter);
-    const r = ribbonWidth / 2; // radius
-    
-    // Calculate perpendicular offset points for each segment
-    const getOffset = (p1: {x: number, y: number}, p2: {x: number, y: number}, side: number) => {
-      const dx = p2.x - p1.x;
-      const dy = p2.y - p1.y;
-      const len = Math.sqrt(dx * dx + dy * dy);
-      const nx = -dy / len * r * side;
-      const ny = dx / len * r * side;
-      return { x: p1.x + nx, y: p1.y + ny };
-    };
-
-    let pathData = '';
-    
-    // Start point
-    const start = points[0];
-    const next = points[1];
-    const startOffset = getOffset(start, next, 1);
-    
-    pathData = `M ${startOffset.x} ${startOffset.y}`;
-    
-    // Rounded start cap
-    const startOffsetOther = getOffset(start, next, -1);
-    pathData += ` A ${r} ${r} 0 0 1 ${startOffsetOther.x} ${startOffsetOther.y}`;
-    
-    // Draw one side
-    for (let i = 0; i < points.length - 1; i++) {
-      const curr = points[i];
-      const next = points[i + 1];
-      const offset = getOffset(curr, next, -1);
-      const nextOffset = getOffset(curr, next, -1);
-      pathData += ` L ${next.x + (nextOffset.x - curr.x - (next.x - curr.x))} ${next.y + (nextOffset.y - curr.y - (next.y - curr.y))}`;
-    }
-    
-    // Rounded end cap
-    const end = points[points.length - 1];
-    const prev = points[points.length - 2];
-    const endOffset1 = getOffset(prev, end, -1);
-    const endOffset2 = getOffset(prev, end, 1);
-    pathData += ` A ${r} ${r} 0 0 1 ${end.x + (endOffset2.x - prev.x - (end.x - prev.x))} ${end.y + (endOffset2.y - prev.y - (end.y - prev.y))}`;
-    
-    // Draw back along other side
-    for (let i = points.length - 1; i > 0; i--) {
-      const curr = points[i];
-      const prev = points[i - 1];
-      const offset = getOffset(prev, curr, 1);
-      pathData += ` L ${prev.x + (offset.x - curr.x + (curr.x - prev.x))} ${prev.y + (offset.y - curr.y + (curr.y - prev.y))}`;
-    }
-    
-    pathData += ' Z';
-    return pathData;
-  };
-
-  // Simpler approach: use polyline with thick stroke and round joins
+  // Build polyline points
   const buildPolyline = () => {
     return path.map(pos => {
       const center = getCenter(pos);
@@ -322,15 +300,15 @@ function PathRibbon({ path, gridSize }: PathRibbonProps) {
     <motion.polyline
       points={buildPolyline()}
       fill="none"
-      stroke="#FF6B1A"
+      stroke={`url(#pathGradient-${pathColor.name})`}
       strokeWidth={ribbonWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
       initial={{ pathLength: 0, opacity: 0 }}
       animate={{ pathLength: 1, opacity: 1 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
       style={{
-        filter: 'drop-shadow(0 2px 4px rgba(255, 107, 26, 0.3))'
+        filter: `drop-shadow(0 2px 6px ${pathColor.base}40)`
       }}
     />
   );

@@ -50,7 +50,7 @@ export function GameControls({
           <div className="text-xs text-gray-500 font-medium">Time</div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-[#FF6B1A]">{hintsUsed}</div>
+          <div className="text-2xl font-bold" style={{ color: '#FF6B1A' }}>{hintsUsed}</div>
           <div className="text-xs text-gray-500 font-medium">Hints</div>
         </div>
         <div className="text-center">
@@ -88,7 +88,10 @@ export function GameControls({
         <motion.button
           onClick={onHint}
           disabled={isComplete}
-          className="bg-[#FF6B1A] hover:bg-[#FF5500] disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-2 rounded-xl font-semibold shadow-md text-sm"
+          className="disabled:bg-gray-300 disabled:cursor-not-allowed text-white py-3 px-2 rounded-xl font-semibold shadow-md text-sm"
+          style={{
+            background: isComplete ? '#D1D5DB' : 'linear-gradient(135deg, #FF8A3D 0%, #FF6B1A 50%, #E85A00 100%)'
+          }}
           whileHover={!isComplete ? { scale: 1.02 } : {}}
           whileTap={!isComplete ? { scale: 0.98 } : {}}
         >
@@ -187,7 +190,10 @@ export function GameControls({
             </motion.button>
             <motion.button
               onClick={applySettings}
-              className="bg-[#FF6B1A] hover:bg-[#FF5500] text-white py-3 px-4 rounded-xl font-semibold shadow-md"
+              className="text-white py-3 px-4 rounded-xl font-semibold shadow-md"
+              style={{
+                background: 'linear-gradient(135deg, #FF8A3D 0%, #FF6B1A 50%, #E85A00 100%)'
+              }}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -202,12 +208,17 @@ export function GameControls({
         <motion.div
           initial={{ opacity: 0, scale: 0.8, y: -20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="bg-white p-6 rounded-2xl text-center shadow-xl border-4 border-[#FF6B1A]"
+          className="bg-white p-6 rounded-2xl text-center shadow-xl"
+          style={{
+            borderWidth: '4px',
+            borderStyle: 'solid',
+            borderImage: 'linear-gradient(135deg, #FF8A3D, #FF6B1A, #E85A00) 1'
+          }}
         >
           <div className="text-3xl font-bold text-gray-800 mb-3">🎉 Puzzle Complete!</div>
           <div className="text-gray-600 text-lg">
-            Time: <span className="font-bold text-[#FF6B1A]">{formatTime(timer)}</span> | 
-            Hints: <span className="font-bold text-[#FF6B1A]">{hintsUsed}</span>
+            Time: <span className="font-bold" style={{ color: '#FF6B1A' }}>{formatTime(timer)}</span> | 
+            Hints: <span className="font-bold" style={{ color: '#FF6B1A' }}>{hintsUsed}</span>
           </div>
         </motion.div>
       )}

@@ -2,14 +2,30 @@ import { useState, useEffect, useCallback } from 'react';
 import { GameState, Position, PuzzleConfig } from '@/types/game';
 import { generatePuzzle, validatePath } from '@/lib/puzzleGenerator';
 
+// Random color palette for path
+const PATH_COLORS = [
+  { name: 'orange', base: '#FF6B1A', light: '#FF8A3D', dark: '#E85A00' },
+  { name: 'blue', base: '#3B82F6', light: '#60A5FA', dark: '#2563EB' },
+  { name: 'purple', base: '#A855F7', light: '#C084FC', dark: '#9333EA' },
+  { name: 'green', base: '#10B981', light: '#34D399', dark: '#059669' },
+  { name: 'pink', base: '#EC4899', light: '#F472B6', dark: '#DB2777' },
+  { name: 'teal', base: '#14B8A6', light: '#2DD4BF', dark: '#0D9488' },
+  { name: 'red', base: '#EF4444', light: '#F87171', dark: '#DC2626' },
+];
+
 export function useGameState(config: PuzzleConfig) {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [timer, setTimer] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
+  const [pathColor, setPathColor] = useState(PATH_COLORS[0]);
 
   // Initialize game
   const initGame = useCallback(() => {
     const { dots, solution, grid } = generatePuzzle(config);
+    
+    // Pick random color
+    const randomColor = PATH_COLORS[Math.floor(Math.random() * PATH_COLORS.length)];
+    setPathColor(randomColor);
     
     setGameState({
       gridSize: config.gridSize,
@@ -175,6 +191,7 @@ export function useGameState(config: PuzzleConfig) {
     newGame,
     undoMove,
     useHint,
-    timer
+    timer,
+    pathColor
   };
 }

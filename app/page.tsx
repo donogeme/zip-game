@@ -13,7 +13,7 @@ export default function Home() {
     difficulty: 'medium'
   });
 
-  const { gameState, addToPath, resetGame, newGame, undoMove, useHint, timer } = useGameState(config);
+  const { gameState, addToPath, resetGame, newGame, undoMove, useHint, timer, pathColor } = useGameState(config);
 
   const handleConfigChange = (newConfig: PuzzleConfig) => {
     setConfig(newConfig);
@@ -60,6 +60,7 @@ export default function Home() {
             path={gameState.path}
             onPathChange={addToPath}
             isComplete={gameState.isComplete}
+            pathColor={pathColor}
           />
         </div>
 
