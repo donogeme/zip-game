@@ -119,20 +119,11 @@ export function GameGrid({ grid, path, onPathChange, isComplete }: GameGridProps
     return () => document.removeEventListener('mouseup', handleMouseUp);
   }, []);
 
-  // Helper to get direction between two positions
-  const getDirection = (from: Position, to: Position): 'up' | 'down' | 'left' | 'right' | null => {
-    if (from.row > to.row) return 'up';
-    if (from.row < to.row) return 'down';
-    if (from.col > to.col) return 'left';
-    if (from.col < to.col) return 'right';
-    return null;
-  };
-
   return (
     <div className="relative">
       <div
         ref={gridRef}
-        className="grid gap-[2px] bg-white p-1 rounded-2xl shadow-lg touch-none select-none"
+        className="grid gap-[2px] bg-white p-1 rounded-2xl shadow-lg touch-none select-none relative"
         style={{
           gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
           gridTemplateRows: `repeat(${gridSize}, 1fr)`,
@@ -143,37 +134,24 @@ export function GameGrid({ grid, path, onPathChange, isComplete }: GameGridProps
         onTouchEnd={handleTouchEnd}
       >
         {grid.map((row, rowIndex) =>
-          row.map((cell, colIndex) => {
-            const pathIndex = path.findIndex(p => p.row === rowIndex && p.col === colIndex);
-            const isInPath = pathIndex >= 0;
-            
-            // Get directions for flow indicators
-            let fromDirection: 'up' | 'down' | 'left' | 'right' | null = null;
-            let toDirection: 'up' | 'down' | 'left' | 'right' | null = null;
-            
-            if (isInPath && pathIndex > 0) {
-              fromDirection = getDirection(path[pathIndex - 1], { row: rowIndex, col: colIndex });
-            }
-            if (isInPath && pathIndex < path.length - 1) {
-              toDirection = getDirection({ row: rowIndex, col: colIndex }, path[pathIndex + 1]);
-            }
-            
-            return (
-              <GridCell
-                key={`${rowIndex}-${colIndex}`}
-                cell={cell}
-                isInPath={isInPath}
-                pathIndex={pathIndex}
-                fromDirection={fromDirection}
-                toDirection={toDirection}
-                isStart={pathIndex === 0}
-                isEnd={pathIndex === path.length - 1}
-                isComplete={isComplete}
-                onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
-                onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
-              />
-            );
-          })
+          row.map((cell, colIndex) => (
+            <GridCell
+              key={`${rowIndex}-${colIndex}`}
+              cell={cell}
+              onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
+              onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
+            />
+          ))
+        )}
+
+        {/* SVG path overlay - the orange ribbon */}
+        {path.length > 0 && (
+          <svg
+            className="absolute inset-0 pointer-events-none"
+            style={{ width: '100%', height: '100%' }}
+          >
+            <PathRibbon path={path} gridSize={gridSize} />
+          </svg>
         )}
       </div>
 
@@ -218,93 +196,17 @@ export function GameGrid({ grid, path, onPathChange, isComplete }: GameGridProps
 
 interface GridCellProps {
   cell: Cell;
-  isInPath: boolean;
-  pathIndex: number;
-  fromDirection: 'up' | 'down' | 'left' | 'right' | null;
-  toDirection: 'up' | 'down' | 'left' | 'right' | null;
-  isStart: boolean;
-  isEnd: boolean;
-  isComplete: boolean;
   onMouseDown: () => void;
   onMouseEnter: () => void;
 }
 
-function GridCell({ 
-  cell, 
-  isInPath, 
-  pathIndex, 
-  fromDirection,
-  toDirection,
-  isStart,
-  isEnd,
-  isComplete,
-  onMouseDown, 
-  onMouseEnter 
-}: GridCellProps) {
-  // Create visual flow indicators
-  const getFlowStyle = () => {
-    if (!isInPath) return {};
-    
-    // Build gradient based on flow direction
-    let gradient = '';
-    
-    if (fromDirection === 'left' && toDirection === 'right') {
-      gradient = 'linear-gradient(90deg, #FF6B1A 0%, #FF8A3D 50%, #FF6B1A 100%)';
-    } else if (fromDirection === 'right' && toDirection === 'left') {
-      gradient = 'linear-gradient(270deg, #FF6B1A 0%, #FF8A3D 50%, #FF6B1A 100%)';
-    } else if (fromDirection === 'up' && toDirection === 'down') {
-      gradient = 'linear-gradient(180deg, #FF6B1A 0%, #FF8A3D 50%, #FF6B1A 100%)';
-    } else if (fromDirection === 'down' && toDirection === 'up') {
-      gradient = 'linear-gradient(0deg, #FF6B1A 0%, #FF8A3D 50%, #FF6B1A 100%)';
-    } else {
-      gradient = '#FF6B1A';
-    }
-    
-    return { background: gradient };
-  };
-
+function GridCell({ cell, onMouseDown, onMouseEnter }: GridCellProps) {
   return (
-    <motion.div
-      className={`
-        aspect-square flex items-center justify-center cursor-pointer relative
-        rounded-md overflow-hidden
-        ${isInPath ? '' : 'bg-white'}
-        transition-all duration-150
-      `}
+    <div
+      className="aspect-square flex items-center justify-center cursor-pointer relative bg-white rounded-sm"
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
-      style={isInPath ? getFlowStyle() : { backgroundColor: '#FFFFFF' }}
-      animate={{
-        scale: isEnd ? [1, 1.05, 1] : 1
-      }}
-      transition={{
-        scale: {
-          repeat: isEnd ? Infinity : 0,
-          duration: 0.8
-        }
-      }}
     >
-      {/* Path order indicator (small number) */}
-      {isInPath && !cell.isDot && (
-        <span className="absolute top-0.5 right-0.5 text-[10px] font-bold text-white/60">
-          {pathIndex + 1}
-        </span>
-      )}
-      
-      {/* Flow arrow indicators */}
-      {isInPath && !isStart && fromDirection && (
-        <div className={`absolute ${
-          fromDirection === 'up' ? 'top-0 left-1/2 -translate-x-1/2' :
-          fromDirection === 'down' ? 'bottom-0 left-1/2 -translate-x-1/2' :
-          fromDirection === 'left' ? 'left-0 top-1/2 -translate-y-1/2' :
-          'right-0 top-1/2 -translate-y-1/2'
-        } text-white/30 text-xs`}>
-          {fromDirection === 'up' ? '▼' :
-           fromDirection === 'down' ? '▲' :
-           fromDirection === 'left' ? '▶' : '◀'}
-        </div>
-      )}
-      
       {/* Numbered dot */}
       {cell.isDot && (
         <div className="w-3/5 h-3/5 rounded-full bg-black flex items-center justify-center z-10 shadow-lg">
@@ -313,20 +215,114 @@ function GridCell({
           </span>
         </div>
       )}
+    </div>
+  );
+}
+
+// Component to render the smooth rounded ribbon path
+interface PathRibbonProps {
+  path: Position[];
+  gridSize: number;
+}
+
+function PathRibbon({ path, gridSize }: PathRibbonProps) {
+  if (path.length === 0) return null;
+
+  // Calculate cell size and center offset
+  const cellSize = 100 / gridSize; // percentage
+  const ribbonWidth = cellSize * 0.65; // 65% of cell width
+  const halfRibbon = ribbonWidth / 2;
+
+  // Convert grid position to SVG percentage coordinates (center of cell)
+  const getCenter = (pos: Position) => ({
+    x: (pos.col + 0.5) * cellSize,
+    y: (pos.row + 0.5) * cellSize
+  });
+
+  // Build the path string with rounded corners
+  const buildPathString = () => {
+    if (path.length === 1) {
+      // Just a circle for single cell
+      const center = getCenter(path[0]);
+      return `M ${center.x - halfRibbon} ${center.y} 
+              A ${halfRibbon} ${halfRibbon} 0 1 1 ${center.x + halfRibbon} ${center.y}
+              A ${halfRibbon} ${halfRibbon} 0 1 1 ${center.x - halfRibbon} ${center.y}`;
+    }
+
+    const points = path.map(getCenter);
+    let pathData = '';
+
+    // Start with rounded cap
+    const start = points[0];
+    const next = points[1];
+    const startAngle = Math.atan2(next.y - start.y, next.x - start.x);
+    const perpAngle = startAngle + Math.PI / 2;
+    
+    const startX1 = start.x + Math.cos(perpAngle) * halfRibbon;
+    const startY1 = start.y + Math.sin(perpAngle) * halfRibbon;
+    const startX2 = start.x - Math.cos(perpAngle) * halfRibbon;
+    const startY2 = start.y - Math.sin(perpAngle) * halfRibbon;
+
+    pathData = `M ${startX1} ${startY1}`;
+
+    // Add rounded start cap
+    pathData += ` A ${halfRibbon} ${halfRibbon} 0 0 0 ${startX2} ${startY2}`;
+
+    // Draw along one side
+    for (let i = 0; i < points.length - 1; i++) {
+      const current = points[i];
+      const next = points[i + 1];
+      const angle = Math.atan2(next.y - current.y, next.x - current.x);
+      const perpAngle = angle + Math.PI / 2;
       
-      {/* Pulse effect on current end of path */}
-      {isEnd && !isComplete && (
-        <motion.div
-          className="absolute inset-0 bg-white/20 rounded-md"
-          animate={{
-            opacity: [0.3, 0, 0.3]
-          }}
-          transition={{
-            repeat: Infinity,
-            duration: 1.5
-          }}
-        />
-      )}
-    </motion.div>
+      const x = next.x - Math.cos(perpAngle) * halfRibbon;
+      const y = next.y - Math.sin(perpAngle) * halfRibbon;
+      
+      pathData += ` L ${x} ${y}`;
+    }
+
+    // Rounded end cap
+    const end = points[points.length - 1];
+    const prev = points[points.length - 2];
+    const endAngle = Math.atan2(end.y - prev.y, end.x - prev.x);
+    const endPerpAngle = endAngle + Math.PI / 2;
+    
+    const endX1 = end.x - Math.cos(endPerpAngle) * halfRibbon;
+    const endY1 = end.y - Math.sin(endPerpAngle) * halfRibbon;
+    const endX2 = end.x + Math.cos(endPerpAngle) * halfRibbon;
+    const endY2 = end.y + Math.sin(endPerpAngle) * halfRibbon;
+
+    pathData += ` A ${halfRibbon} ${halfRibbon} 0 0 0 ${endX2} ${endY2}`;
+
+    // Draw back along other side
+    for (let i = points.length - 1; i > 0; i--) {
+      const current = points[i];
+      const prev = points[i - 1];
+      const angle = Math.atan2(prev.y - current.y, prev.x - current.x);
+      const perpAngle = angle + Math.PI / 2;
+      
+      const x = prev.x - Math.cos(perpAngle) * halfRibbon;
+      const y = prev.y - Math.sin(perpAngle) * halfRibbon;
+      
+      pathData += ` L ${x} ${y}`;
+    }
+
+    pathData += ' Z'; // Close path
+
+    return pathData;
+  };
+
+  return (
+    <motion.path
+      d={buildPathString()}
+      fill="#FF6B1A"
+      stroke="none"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
+      style={{
+        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+      }}
+    />
   );
 }
