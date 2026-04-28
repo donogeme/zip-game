@@ -190,7 +190,7 @@ export function GameGrid({ grid, path, onPathChange, onPathRetrace, isComplete, 
             exit={{ opacity: 0 }}
           >
             {/* Confetti particles */}
-            {[...Array(20)].map((_, i) => (
+            {[...Array(12)].map((_, i) => (
               <motion.div
                 key={i}
                 className="absolute text-3xl"
@@ -274,22 +274,20 @@ function GridCell({ cell, onMouseDown, onMouseEnter }: GridCellProps) {
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
     >
-      {/* Numbered dot - prominent black circle with white text */}
+      {/* Numbered dot - BLACK circle with WHITE text */}
       {/* Must be on top of path - render with high z-index */}
       {cell.isDot && (
-        <motion.div 
-          className="absolute w-[70%] h-[70%] rounded-full bg-black flex items-center justify-center z-20"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+        <div 
+          className="absolute w-[70%] h-[70%] rounded-full flex items-center justify-center z-20"
           style={{
-            boxShadow: '0 2px 8px rgba(0,0,0,0.3), 0 0 0 2px white'
+            backgroundColor: '#000000',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.25)'
           }}
         >
-          <span className="text-white font-extrabold" style={{ fontSize: '1rem' }}>
+          <span className="font-bold" style={{ color: '#FFFFFF', fontSize: '1rem' }}>
             {cell.dotNumber}
           </span>
-        </motion.div>
+        </div>
       )}
     </div>
   );
@@ -322,18 +320,16 @@ function PathRibbon({ path, gridSize, pathColor }: PathRibbonProps) {
   };
 
   return (
-    <motion.polyline
+    <polyline
       points={buildPolyline()}
       fill="none"
       stroke={`url(#pathGradient-${pathColor.name})`}
       strokeWidth={ribbonWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
-      initial={{ pathLength: 0, opacity: 0 }}
-      animate={{ pathLength: 1, opacity: 1 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
+      opacity={1}
       style={{
-        filter: `drop-shadow(0 2px 6px ${pathColor.base}40)`
+        filter: `drop-shadow(0 2px 4px ${pathColor.base}30)`
       }}
     />
   );
