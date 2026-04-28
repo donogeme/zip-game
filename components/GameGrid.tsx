@@ -123,11 +123,12 @@ export function GameGrid({ grid, path, onPathChange, isComplete }: GameGridProps
     <div className="relative">
       <div
         ref={gridRef}
-        className="grid gap-[2px] bg-white p-1 rounded-2xl shadow-lg touch-none select-none relative"
+        className="grid gap-0 p-3 rounded-2xl shadow-lg touch-none select-none relative"
         style={{
           gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
           gridTemplateRows: `repeat(${gridSize}, 1fr)`,
-          backgroundColor: '#FFF5E6' // Light cream background
+          backgroundColor: '#FFF5E6',
+          border: '2px solid #E5E5E5'
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -145,10 +146,15 @@ export function GameGrid({ grid, path, onPathChange, isComplete }: GameGridProps
         )}
 
         {/* SVG path overlay - the orange ribbon */}
-        {path.length > 0 && (
+        {path.length > 0 && gridRef.current && (
           <svg
-            className="absolute inset-0 pointer-events-none"
-            style={{ width: '100%', height: '100%' }}
+            className="absolute top-0 left-0 pointer-events-none"
+            style={{
+              width: '100%',
+              height: '100%'
+            }}
+            viewBox={`0 0 ${gridSize} ${gridSize}`}
+            preserveAspectRatio="none"
           >
             <PathRibbon path={path} gridSize={gridSize} />
           </svg>
@@ -203,7 +209,10 @@ interface GridCellProps {
 function GridCell({ cell, onMouseDown, onMouseEnter }: GridCellProps) {
   return (
     <div
-      className="aspect-square flex items-center justify-center cursor-pointer relative bg-white rounded-sm"
+      className="aspect-square flex items-center justify-center cursor-pointer relative bg-white"
+      style={{
+        border: '1px solid #E8E8E8'
+      }}
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
     >
@@ -228,100 +237,100 @@ interface PathRibbonProps {
 function PathRibbon({ path, gridSize }: PathRibbonProps) {
   if (path.length === 0) return null;
 
-  // Calculate cell size and center offset
-  const cellSize = 100 / gridSize; // percentage
-  const ribbonWidth = cellSize * 0.65; // 65% of cell width
-  const halfRibbon = ribbonWidth / 2;
+  const ribbonWidth = 0.65; // 65% of cell width
 
-  // Convert grid position to SVG percentage coordinates (center of cell)
+  // Get center of cell in grid coordinates (0-gridSize range)
   const getCenter = (pos: Position) => ({
-    x: (pos.col + 0.5) * cellSize,
-    y: (pos.row + 0.5) * cellSize
+    x: pos.col + 0.5,
+    y: pos.row + 0.5
   });
 
-  // Build the path string with rounded corners
+  // Build SVG path for the ribbon
   const buildPathString = () => {
     if (path.length === 1) {
-      // Just a circle for single cell
+      // Single cell - just a circle
       const center = getCenter(path[0]);
-      return `M ${center.x - halfRibbon} ${center.y} 
-              A ${halfRibbon} ${halfRibbon} 0 1 1 ${center.x + halfRibbon} ${center.y}
-              A ${halfRibbon} ${halfRibbon} 0 1 1 ${center.x - halfRibbon} ${center.y}`;
+      const r = ribbonWidth / 2;
+      return `M ${center.x - r} ${center.y} 
+              A ${r} ${r} 0 1 1 ${center.x + r} ${center.y}
+              A ${r} ${r} 0 1 1 ${center.x - r} ${center.y}`;
     }
 
     const points = path.map(getCenter);
-    let pathData = '';
+    const r = ribbonWidth / 2; // radius
+    
+    // Calculate perpendicular offset points for each segment
+    const getOffset = (p1: {x: number, y: number}, p2: {x: number, y: number}, side: number) => {
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const len = Math.sqrt(dx * dx + dy * dy);
+      const nx = -dy / len * r * side;
+      const ny = dx / len * r * side;
+      return { x: p1.x + nx, y: p1.y + ny };
+    };
 
-    // Start with rounded cap
+    let pathData = '';
+    
+    // Start point
     const start = points[0];
     const next = points[1];
-    const startAngle = Math.atan2(next.y - start.y, next.x - start.x);
-    const perpAngle = startAngle + Math.PI / 2;
+    const startOffset = getOffset(start, next, 1);
     
-    const startX1 = start.x + Math.cos(perpAngle) * halfRibbon;
-    const startY1 = start.y + Math.sin(perpAngle) * halfRibbon;
-    const startX2 = start.x - Math.cos(perpAngle) * halfRibbon;
-    const startY2 = start.y - Math.sin(perpAngle) * halfRibbon;
-
-    pathData = `M ${startX1} ${startY1}`;
-
-    // Add rounded start cap
-    pathData += ` A ${halfRibbon} ${halfRibbon} 0 0 0 ${startX2} ${startY2}`;
-
-    // Draw along one side
+    pathData = `M ${startOffset.x} ${startOffset.y}`;
+    
+    // Rounded start cap
+    const startOffsetOther = getOffset(start, next, -1);
+    pathData += ` A ${r} ${r} 0 0 1 ${startOffsetOther.x} ${startOffsetOther.y}`;
+    
+    // Draw one side
     for (let i = 0; i < points.length - 1; i++) {
-      const current = points[i];
+      const curr = points[i];
       const next = points[i + 1];
-      const angle = Math.atan2(next.y - current.y, next.x - current.x);
-      const perpAngle = angle + Math.PI / 2;
-      
-      const x = next.x - Math.cos(perpAngle) * halfRibbon;
-      const y = next.y - Math.sin(perpAngle) * halfRibbon;
-      
-      pathData += ` L ${x} ${y}`;
+      const offset = getOffset(curr, next, -1);
+      const nextOffset = getOffset(curr, next, -1);
+      pathData += ` L ${next.x + (nextOffset.x - curr.x - (next.x - curr.x))} ${next.y + (nextOffset.y - curr.y - (next.y - curr.y))}`;
     }
-
+    
     // Rounded end cap
     const end = points[points.length - 1];
     const prev = points[points.length - 2];
-    const endAngle = Math.atan2(end.y - prev.y, end.x - prev.x);
-    const endPerpAngle = endAngle + Math.PI / 2;
+    const endOffset1 = getOffset(prev, end, -1);
+    const endOffset2 = getOffset(prev, end, 1);
+    pathData += ` A ${r} ${r} 0 0 1 ${end.x + (endOffset2.x - prev.x - (end.x - prev.x))} ${end.y + (endOffset2.y - prev.y - (end.y - prev.y))}`;
     
-    const endX1 = end.x - Math.cos(endPerpAngle) * halfRibbon;
-    const endY1 = end.y - Math.sin(endPerpAngle) * halfRibbon;
-    const endX2 = end.x + Math.cos(endPerpAngle) * halfRibbon;
-    const endY2 = end.y + Math.sin(endPerpAngle) * halfRibbon;
-
-    pathData += ` A ${halfRibbon} ${halfRibbon} 0 0 0 ${endX2} ${endY2}`;
-
     // Draw back along other side
     for (let i = points.length - 1; i > 0; i--) {
-      const current = points[i];
+      const curr = points[i];
       const prev = points[i - 1];
-      const angle = Math.atan2(prev.y - current.y, prev.x - current.x);
-      const perpAngle = angle + Math.PI / 2;
-      
-      const x = prev.x - Math.cos(perpAngle) * halfRibbon;
-      const y = prev.y - Math.sin(perpAngle) * halfRibbon;
-      
-      pathData += ` L ${x} ${y}`;
+      const offset = getOffset(prev, curr, 1);
+      pathData += ` L ${prev.x + (offset.x - curr.x + (curr.x - prev.x))} ${prev.y + (offset.y - curr.y + (curr.y - prev.y))}`;
     }
-
-    pathData += ' Z'; // Close path
-
+    
+    pathData += ' Z';
     return pathData;
   };
 
+  // Simpler approach: use polyline with thick stroke and round joins
+  const buildPolyline = () => {
+    return path.map(pos => {
+      const center = getCenter(pos);
+      return `${center.x},${center.y}`;
+    }).join(' ');
+  };
+
   return (
-    <motion.path
-      d={buildPathString()}
-      fill="#FF6B1A"
-      stroke="none"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.2 }}
+    <motion.polyline
+      points={buildPolyline()}
+      fill="none"
+      stroke="#FF6B1A"
+      strokeWidth={ribbonWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      initial={{ pathLength: 0, opacity: 0 }}
+      animate={{ pathLength: 1, opacity: 1 }}
+      transition={{ duration: 0.3 }}
       style={{
-        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))'
+        filter: 'drop-shadow(0 2px 4px rgba(255, 107, 26, 0.3))'
       }}
     />
   );
