@@ -174,13 +174,13 @@ export function GameControls({
       {/* Completion message */}
       {isComplete && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-green-600 p-4 rounded-lg text-center"
+          initial={{ opacity: 0, scale: 0.8, y: -20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="bg-gradient-to-br from-green-500 to-green-600 p-6 rounded-xl text-center shadow-2xl"
         >
-          <div className="text-2xl font-bold text-white mb-2">🎉 Puzzle Complete!</div>
-          <div className="text-white">
-            Time: {formatTime(timer)} | Hints: {hintsUsed}
+          <div className="text-3xl font-bold text-white mb-3">🎉 Puzzle Complete!</div>
+          <div className="text-white text-lg">
+            Time: <span className="font-bold">{formatTime(timer)}</span> | Hints: <span className="font-bold">{hintsUsed}</span>
           </div>
         </motion.div>
       )}

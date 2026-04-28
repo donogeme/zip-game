@@ -38,20 +38,20 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-900 p-4 md:p-8">
+    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-4 md:p-8">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
+          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent mb-2">
             Zip 🎯
           </h1>
-          <p className="text-gray-400">
+          <p className="text-gray-300 text-lg">
             Connect all dots in order while filling the entire grid!
           </p>
         </div>
 
         {/* Game grid */}
-        <div className="bg-gray-800 p-4 rounded-lg">
+        <div>
           <GameGrid
             grid={gameState.grid}
             path={gameState.path}

@@ -49,9 +49,20 @@ export function GameGrid({ grid, path, onPathChange, isComplete }: GameGridProps
       return false;
     }
 
-    // Can't revisit
+    // Can't revisit a cell
     if (path.some(p => p.row === pos.row && p.col === pos.col)) {
       return false;
+    }
+
+    // Can't cross over an existing line segment
+    for (let i = 0; i < path.length - 1; i++) {
+      const segStart = path[i];
+      const segEnd = path[i + 1];
+      
+      // Check if new segment (lastPos -> pos) crosses existing segment (segStart -> segEnd)
+      if (segmentsIntersect(lastPos, pos, segStart, segEnd)) {
+        return false;
+      }
     }
 
     // If it's a dot, must be the next number
@@ -66,6 +77,22 @@ export function GameGrid({ grid, path, onPathChange, isComplete }: GameGridProps
 
     return true;
   }, [path, grid]);
+
+  // Check if two line segments intersect (share an edge)
+  const segmentsIntersect = (a1: Position, a2: Position, b1: Position, b2: Position): boolean => {
+    // Same segment, skip
+    if ((a1.row === b1.row && a1.col === b1.col && a2.row === b2.row && a2.col === b2.col) ||
+        (a1.row === b2.row && a1.col === b2.col && a2.row === b1.row && a2.col === b1.col)) {
+      return false;
+    }
+    
+    // Check if segments share the same edge (same two cells)
+    const sameEdge = 
+      (a1.row === b1.row && a1.col === b1.col && a2.row === b2.row && a2.col === b2.col) ||
+      (a1.row === b2.row && a1.col === b2.col && a2.row === b1.row && a2.col === b1.col);
+    
+    return sameEdge;
+  };
 
   const handleCellInteraction = useCallback((pos: Position) => {
     if (isComplete) return;
@@ -123,7 +150,7 @@ export function GameGrid({ grid, path, onPathChange, isComplete }: GameGridProps
     <div className="relative">
       <div
         ref={gridRef}
-        className="grid gap-1 bg-gray-800 p-2 rounded-lg touch-none select-none"
+        className="grid gap-2 bg-gray-900 p-4 rounded-xl shadow-2xl touch-none select-none"
         style={{
           gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
           gridTemplateRows: `repeat(${gridSize}, 1fr)`
@@ -151,25 +178,46 @@ export function GameGrid({ grid, path, onPathChange, isComplete }: GameGridProps
         className="absolute inset-0 pointer-events-none"
         style={{ width: '100%', height: '100%' }}
       >
+        <defs>
+          <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#60a5fa" />
+            <stop offset="100%" stopColor="#3b82f6" />
+          </linearGradient>
+        </defs>
         {path.slice(0, -1).map((pos, i) => {
           const next = path[i + 1];
           const cellSize = gridRef.current ? gridRef.current.offsetWidth / gridSize : 0;
           const offset = cellSize / 2 + 8; // Account for padding
 
           return (
-            <motion.line
-              key={i}
-              x1={pos.col * cellSize + offset}
-              y1={pos.row * cellSize + offset}
-              x2={next.col * cellSize + offset}
-              y2={next.row * cellSize + offset}
-              stroke="#3b82f6"
-              strokeWidth="4"
-              strokeLinecap="round"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.2 }}
-            />
+            <g key={i}>
+              {/* Shadow/outline */}
+              <motion.line
+                x1={pos.col * cellSize + offset}
+                y1={pos.row * cellSize + offset}
+                x2={next.col * cellSize + offset}
+                y2={next.row * cellSize + offset}
+                stroke="rgba(0,0,0,0.3)"
+                strokeWidth="10"
+                strokeLinecap="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.15 }}
+              />
+              {/* Main line */}
+              <motion.line
+                x1={pos.col * cellSize + offset}
+                y1={pos.row * cellSize + offset}
+                x2={next.col * cellSize + offset}
+                y2={next.row * cellSize + offset}
+                stroke="url(#pathGradient)"
+                strokeWidth="6"
+                strokeLinecap="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.15 }}
+              />
+            </g>
           );
         })}
       </svg>
@@ -178,18 +226,33 @@ export function GameGrid({ grid, path, onPathChange, isComplete }: GameGridProps
       <AnimatePresence>
         {isComplete && (
           <motion.div
-            className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg"
+            className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 rounded-xl backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="text-6xl"
-              initial={{ scale: 0 }}
-              animate={{ scale: 1, rotate: 360 }}
-              transition={{ type: 'spring', duration: 0.8 }}
+              className="text-8xl mb-4"
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ 
+                scale: [0, 1.2, 1],
+                rotate: [- 180, 180, 360] 
+              }}
+              transition={{ 
+                type: 'spring',
+                duration: 1,
+                bounce: 0.5
+              }}
             >
               🎉
+            </motion.div>
+            <motion.div
+              className="text-3xl font-bold text-white"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              Puzzle Complete!
             </motion.div>
           </motion.div>
         )}
@@ -210,23 +273,30 @@ function GridCell({ cell, isInPath, pathIndex, onMouseDown, onMouseEnter }: Grid
   return (
     <motion.div
       className={`
-        aspect-square flex items-center justify-center rounded
-        text-lg font-bold cursor-pointer transition-colors
-        ${isInPath ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-400'}
-        ${cell.isDot ? 'ring-2 ring-yellow-400' : ''}
-        hover:bg-gray-600
+        aspect-square flex items-center justify-center rounded-lg
+        text-xl font-bold cursor-pointer
+        ${isInPath ? 'bg-gradient-to-br from-blue-400 to-blue-600 text-white shadow-lg' : 'bg-gray-700 text-gray-500'}
+        ${cell.isDot ? 'ring-4 ring-yellow-400 ring-offset-2 ring-offset-gray-800' : ''}
+        ${!isInPath && !cell.isDot ? 'hover:bg-gray-600 hover:ring-2 hover:ring-blue-400/50' : ''}
+        transition-all duration-200
       `}
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
-      whileHover={{ scale: 1.05 }}
+      whileHover={{ scale: cell.isDot || !isInPath ? 1.05 : 1 }}
       whileTap={{ scale: 0.95 }}
       animate={{
-        backgroundColor: isInPath ? '#3b82f6' : '#374151',
-        scale: isInPath ? 1.1 : 1
+        scale: isInPath ? 1.05 : 1
       }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.15 }}
     >
-      {cell.isDot && cell.dotNumber}
+      {cell.isDot && (
+        <span className={isInPath ? 'text-white drop-shadow-lg' : 'text-yellow-400'}>
+          {cell.dotNumber}
+        </span>
+      )}
+      {isInPath && !cell.isDot && (
+        <span className="text-xs text-blue-200 opacity-75">{pathIndex + 1}</span>
+      )}
     </motion.div>
   );
 }
