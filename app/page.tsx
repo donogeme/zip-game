@@ -13,7 +13,7 @@ export default function Home() {
     difficulty: 'medium'
   });
 
-  const { gameState, addToPath, resetGame, newGame, undoMove, useHint, timer, pathColor } = useGameState(config);
+  const { gameState, addToPath, resetGame, newGame, undoMove, retracePath, useHint, timer, pathColor } = useGameState(config);
 
   const handleConfigChange = (newConfig: PuzzleConfig) => {
     setConfig(newConfig);
@@ -59,6 +59,7 @@ export default function Home() {
             grid={gameState.grid}
             path={gameState.path}
             onPathChange={addToPath}
+            onPathRetrace={retracePath}
             isComplete={gameState.isComplete}
             pathColor={pathColor}
           />

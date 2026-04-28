@@ -161,6 +161,30 @@ export function useGameState(config: PuzzleConfig) {
       };
     });
   }, [gameState]);
+  
+  // Retrace path to a specific length (for tapping back on path)
+  const retracePath = useCallback((newLength: number) => {
+    if (!gameState || newLength < 0 || newLength > gameState.path.length) return;
+    
+    setGameState(prev => {
+      if (!prev) return prev;
+      
+      const newPath = prev.path.slice(0, newLength);
+      const newGrid = prev.grid.map(row =>
+        row.map(cell => ({
+          ...cell,
+          visited: newPath.some(p => p.row === cell.position.row && p.col === cell.position.col)
+        }))
+      );
+      
+      return {
+        ...prev,
+        path: newPath,
+        grid: newGrid,
+        isComplete: false
+      };
+    });
+  }, [gameState]);
 
   // Use hint (show next valid move)
   const useHint = useCallback(() => {
@@ -190,6 +214,7 @@ export function useGameState(config: PuzzleConfig) {
     resetGame,
     newGame,
     undoMove,
+    retracePath,
     useHint,
     timer,
     pathColor

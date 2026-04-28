@@ -8,11 +8,12 @@ interface GameGridProps {
   grid: Cell[][];
   path: Position[];
   onPathChange: (pos: Position) => void;
+  onPathRetrace: (newLength: number) => void;
   isComplete: boolean;
   pathColor: { name: string; base: string; light: string; dark: string };
 }
 
-export function GameGrid({ grid, path, onPathChange, isComplete, pathColor }: GameGridProps) {
+export function GameGrid({ grid, path, onPathChange, onPathRetrace, isComplete, pathColor }: GameGridProps) {
   const [isDragging, setIsDragging] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
   const gridSize = grid.length;
@@ -70,10 +71,20 @@ export function GameGrid({ grid, path, onPathChange, isComplete, pathColor }: Ga
 
   const handleCellInteraction = useCallback((pos: Position) => {
     if (isComplete) return;
+    
+    // Check if tapping on existing path - retrace to that point
+    const existingIndex = path.findIndex(p => p.row === pos.row && p.col === pos.col);
+    if (existingIndex >= 0) {
+      // Retrace: keep path up to and including this cell
+      onPathRetrace(existingIndex + 1);
+      return;
+    }
+    
+    // Otherwise, check if this is a valid next move
     if (isValidNextMove(pos)) {
       onPathChange(pos);
     }
-  }, [isComplete, isValidNextMove, onPathChange]);
+  }, [isComplete, path, isValidNextMove, onPathChange, onPathRetrace]);
 
   // Mouse handlers
   const handleMouseDown = (row: number, col: number) => {
