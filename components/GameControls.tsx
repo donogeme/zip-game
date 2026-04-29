@@ -66,7 +66,30 @@ export function GameControls({
       </div>
 
       {/* Action buttons */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-3 mb-2">
+        <motion.button
+          onClick={onNewGame}
+          className="text-white py-3 px-4 rounded-xl font-semibold shadow-md text-base"
+          style={{
+            background: 'linear-gradient(135deg, #FF8A3D 0%, #FF6B1A 50%, #E85A00 100%)'
+          }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          🎲 New Game
+        </motion.button>
+
+        <motion.button
+          onClick={onReset}
+          className="bg-white hover:bg-gray-50 text-gray-700 py-3 px-4 rounded-xl font-semibold shadow-md border-2 border-gray-200 text-base"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          🔄 Reset
+        </motion.button>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2">
         <motion.button
           onClick={onUndo}
           className="bg-white hover:bg-gray-50 text-gray-700 py-3 px-2 rounded-xl font-semibold shadow-md border-2 border-gray-200 text-sm"
@@ -74,15 +97,6 @@ export function GameControls({
           whileTap={{ scale: 0.98 }}
         >
           ↶ Undo
-        </motion.button>
-        
-        <motion.button
-          onClick={onReset}
-          className="bg-white hover:bg-gray-50 text-gray-700 py-3 px-2 rounded-xl font-semibold shadow-md border-2 border-gray-200 text-sm"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          🔄 Reset
         </motion.button>
 
         <motion.button

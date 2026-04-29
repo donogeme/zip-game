@@ -11,9 +11,10 @@ interface GameGridProps {
   onPathRetrace: (newLength: number) => void;
   isComplete: boolean;
   pathColor: { name: string; base: string; light: string; dark: string };
+  hintPosition: Position | null;
 }
 
-export function GameGrid({ grid, path, onPathChange, onPathRetrace, isComplete, pathColor }: GameGridProps) {
+export function GameGrid({ grid, path, onPathChange, onPathRetrace, isComplete, pathColor, hintPosition }: GameGridProps) {
   const [isDragging, setIsDragging] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
   const gridSize = grid.length;
@@ -153,6 +154,7 @@ export function GameGrid({ grid, path, onPathChange, onPathRetrace, isComplete, 
               cell={cell}
               onMouseDown={() => handleMouseDown(rowIndex, colIndex)}
               onMouseEnter={() => handleMouseEnter(rowIndex, colIndex)}
+              isHint={hintPosition !== null && hintPosition.row === rowIndex && hintPosition.col === colIndex}
             />
           ))
         )}
@@ -262,9 +264,10 @@ interface GridCellProps {
   cell: Cell;
   onMouseDown: () => void;
   onMouseEnter: () => void;
+  isHint: boolean;
 }
 
-function GridCell({ cell, onMouseDown, onMouseEnter }: GridCellProps) {
+function GridCell({ cell, onMouseDown, onMouseEnter, isHint }: GridCellProps) {
   return (
     <div
       className="aspect-square flex items-center justify-center cursor-pointer relative bg-white"
@@ -274,6 +277,29 @@ function GridCell({ cell, onMouseDown, onMouseEnter }: GridCellProps) {
       onMouseDown={onMouseDown}
       onMouseEnter={onMouseEnter}
     >
+      {/* Hint arrow - pulsing animation */}
+      {isHint && (
+        <motion.div
+          className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none"
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [1, 0.7, 1]
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          <div className="text-5xl" style={{ 
+            filter: 'drop-shadow(0 2px 8px rgba(255, 107, 26, 0.6))'
+          }}>
+            ⬇️
+          </div>
+        </motion.div>
+      )}
+
       {/* Numbered dot - BLACK circle with WHITE text */}
       {/* Must be on top of path - render with high z-index */}
       {cell.isDot && (
@@ -290,7 +316,7 @@ function GridCell({ cell, onMouseDown, onMouseEnter }: GridCellProps) {
         </div>
       )}
     </div>
-  );
+  );}
 }
 
 // Component to render the smooth rounded ribbon path

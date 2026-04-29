@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { PuzzleConfig } from '@/types/game';
+import { useState, useEffect } from 'react';
+import { PuzzleConfig, Position } from '@/types/game';
 import { useGameState } from '@/hooks/useGameState';
 import { GameGrid } from '@/components/GameGrid';
 import { GameControls } from '@/components/GameControls';
@@ -12,6 +12,7 @@ export default function Home() {
     dotCount: 5,
     difficulty: 'medium'
   });
+  const [hintPosition, setHintPosition] = useState<Position | null>(null);
 
   const { gameState, addToPath, resetGame, newGame, undoMove, retracePath, useHint, timer, pathColor } = useGameState(config);
 
@@ -23,11 +24,18 @@ export default function Home() {
   const handleHint = () => {
     const hintPos = useHint();
     if (hintPos) {
-      // Flash the hint position
-      // TODO: Add visual feedback for hint
-      alert(`Next dot is at row ${hintPos.row + 1}, column ${hintPos.col + 1}`);
+      setHintPosition(hintPos);
+      // Clear hint after 3 seconds
+      setTimeout(() => setHintPosition(null), 3000);
     }
   };
+
+  // Clear hint when path changes
+  useEffect(() => {
+    if (gameState?.path.length) {
+      setHintPosition(null);
+    }
+  }, [gameState?.path.length]);
 
   if (!gameState) {
     return (
@@ -62,6 +70,7 @@ export default function Home() {
             onPathRetrace={retracePath}
             isComplete={gameState.isComplete}
             pathColor={pathColor}
+            hintPosition={hintPosition}
           />
         </div>
 
